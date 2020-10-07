@@ -20,8 +20,9 @@ int findWaitingTime(vector<pair<int, int>> proc, int n, int total, vector<int> w
     vector<int> heap;
     // put Process Length of first element into heap
     heap.push_back(proc[0].first);
-    // make max heap
-    make_heap(heap.begin(), heap.end());
+    // todo min heap
+    // make min heap
+    make_heap(heap.begin(), heap.end(), greater<>{});
 
 //    heap.push_back(10);
 //    heap.push_back(6);
@@ -38,27 +39,29 @@ int findWaitingTime(vector<pair<int, int>> proc, int n, int total, vector<int> w
         if(proc[i].second>proc[i-1].second){
             diff = proc[i].second-proc[i-1].second;
             // root min > diff
-            if(heap.back()>diff){
-                heap.back()-=diff;
+            if(heap.front()>diff){
+                heap.front()-=diff;
             }
             else{
                 // end time
-                int temp = heap.back();
+                int temp = heap.front();
+                // delete root
+                pop_heap(heap.begin(), heap.end(), greater<>{});
                 heap.pop_back();
                 // new root
-                heap.back() = heap.back()-(diff-temp);
+                heap.front() = heap.front()-(diff-temp);
                 // ?
                 wt.push_back(temp+proc[i-1].second);
                 total += temp+proc[i-1].second;
             };
         }
         heap.push_back(proc[i].first);
-        make_heap(heap.begin(), heap.end());
-        cout << endl;
-        for(int i=0;i<heap.size();i++){
-            cout << heap[i]<< ", ";
-        }
-        cout << endl;
+        push_heap(heap.begin(), heap.end(), greater<>{});
+//        cout << endl;
+//        for(int i=0;i<heap.size();i++){
+//            cout << heap[i]<< ", ";
+//        }
+//        cout << endl;
     }
     for(int i=0;i<wt.size();i++){
         cout << wt[i]<< ", ";
