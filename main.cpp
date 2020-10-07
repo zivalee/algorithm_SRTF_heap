@@ -4,17 +4,17 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+
 using namespace std;
 
 // heap
 // 找小於+heapify (nlogn)
-// 8, 23, 17, 56, 30, 36, 103, 74, 63, 85, 80, 122, 110, 112, 131, 139, 135, 144, 166, 156,
 
 // first: Process Length (pj)
 // second: Arrival Time (rj)
-int findWaitingTime(vector<pair<int, int>> proc, int n, int total, vector<int> wt) {
+vector<int> findWaitingTime(vector<pair<int, int>> proc, int n, vector<int> wt) {
 
-    int r0 = 0, diff = 0, lastTime = 0;
+    int r0 = 0, diff = 0, afterCountT = 0;
     vector<int> heap;
     // put Process Length of first element into heap
     heap.push_back(proc[0].first);
@@ -22,50 +22,68 @@ int findWaitingTime(vector<pair<int, int>> proc, int n, int total, vector<int> w
     make_heap(heap.begin(), heap.end(), greater<>{});
 
     for (int i = 1; i < n; i++) {
-        if(proc[i].second>proc[i-1].second){
-            diff = proc[i].second-proc[i-1].second;
-            // root min > diff
-            if(heap.front()>diff){
-                heap.front()-=diff;
-            }
-            else{
-                // end time
-                int previousT = proc[i-1].second;
+        if (proc[i].second > proc[i - 1].second) {
+            diff = proc[i].second - proc[i - 1].second;
+//            cout << diff << ", ";
 
-                while(diff>0){
+            // root min > diff
+            if (heap.front() > diff) {
+                heap.front() -= diff;
+            } else {
+                // end time
+                int previousT = proc[i - 1].second;
+
+                while (diff > 0) {
                     int temp = heap.front();
 
-                    if(diff>=temp){
+                    if (diff >= temp) {
                         // delete root
                         pop_heap(heap.begin(), heap.end(), greater<>{});
                         heap.pop_back();
                         // diff
                         diff -= temp;
                         // ?
-                        wt.push_back(temp+previousT);  // todo 第二圈時間
-                        total += temp+previousT;
-                        previousT = temp+previousT;
-                    }
-                    else{
+                        wt.push_back(temp + previousT);
+                        previousT = temp + previousT;
+                    } else {
                         heap.front() -= diff;
                         diff = 0;
                     }
                 }
 
-            };
+            }
+
         }
+
+        // insert to heap
         heap.push_back(proc[i].first);
         push_heap(heap.begin(), heap.end(), greater<>{});
-//        cout << endl;
-//        for(int i=0;i<heap.size();i++){
-//            cout << heap[i]<< ", ";
+
+        // print heap
+//        for (int i = 0; i < heap.size(); i++) {
+//            cout << heap[i] << ", ";
 //        }
-//        cout << endl;
+
+        // save last job arrive time for later counting
+        if (i == n - 1) {
+            afterCountT = proc[i].second;
+        }
+
     }
-    for(int i=0;i<wt.size();i++){
-        cout << wt[i]<< ", ";
+
+//    cout << "afterCountT "<< afterCountT << endl;
+
+    int num =heap.size();
+    for (int j = 0; j < num; j++) {
+        // count time
+        wt.push_back(afterCountT + heap.front());
+        afterCountT += heap.front();
+        // delete root
+        pop_heap(heap.begin(), heap.end(), greater<>{});
+        heap.pop_back();
     }
-    return total;
+
+    return wt;
 }
 
 int main() {
@@ -119,40 +137,38 @@ int main() {
     // todo sort by Arrival Time (second param)?
     vector<pair<int, int>> rawData = data;
 
-    // execute SRPT
+    // execute heap SRPT
     cout << "There are k jobs...." << endl;
-    for (int k = 20; k <= 20; k += 20) {
+    for (int k = 20; k <= 100; k += 20) {
         vector<pair<int, int>> process;
-        cout << "k = " << k << ", " << endl;
+        cout << "k = " << k << ", ";
 
         // prepare data for SRPT
         for (int j = 0; j < k; j++) {
             // SRPT loop
             process.push_back({data[j].first, data[j].second});
-            cout << data[j].second << ", ";
+//            cout << data[j].second << ", ";
         }
-        cout << endl;
-        for (int j = 0; j < k; j++) {
-            cout << data[j].first << ",  ";
-        }
-        cout << endl;
+//        cout << endl;
+//        for (int j = 0; j < k; j++) {
+//            cout << data[j].first << ",  ";
+//        }
 
-        int total = 0;
-//        clock_t start = clock();
+        clock_t start = clock();
         // SRPT
         vector<int> wt;
-//        vector<pair<int, int>> proc = {{6,0},{2,2},{3,2},{2,6},{5,7},{2,9}};
-        findWaitingTime(process, process.size(), total, wt);
+        wt = findWaitingTime(process, process.size(), wt);
 
-//        clock_t end = clock();
-//        double elapsed_secs = double(end - start);
-//        cout << "elapsed run time: " << elapsed_secs << " ms, ";
-//
-//        // print process finished time
-//        for (int b = 0; b < wt.size(); b++) {
-//            total += wt[b];
-//        }
-//        cout << "Objective Value: " << total << endl;
+        clock_t end = clock();
+        double elapsed_secs = double(end - start);
+        cout << "elapsed run time: " << elapsed_secs << " ms, ";
+
+        int total = 0;
+        // print process finished time
+        for (int b = 0; b < wt.size(); b++) {
+            total += wt[b];
+        }
+        cout << "Objective Value: " << total << endl;
     }
 
 
