@@ -4,8 +4,6 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
-
-
 using namespace std;
 
 // heap
@@ -20,20 +18,8 @@ int findWaitingTime(vector<pair<int, int>> proc, int n, int total, vector<int> w
     vector<int> heap;
     // put Process Length of first element into heap
     heap.push_back(proc[0].first);
-    // todo min heap
     // make min heap
     make_heap(heap.begin(), heap.end(), greater<>{});
-
-//    heap.push_back(10);
-//    heap.push_back(6);
-//    make_heap (heap.begin(),heap.end());
-//    cout << heap.back() << endl;
-//    heap.pop_back();
-//    for(int j=0;j<heap.size();j++) {
-//        cout << heap[j] << ", ";
-//    }
-//    heap.front()-=2;
-//    cout << heap.front();
 
     for (int i = 1; i < n; i++) {
         if(proc[i].second>proc[i-1].second){
@@ -44,15 +30,28 @@ int findWaitingTime(vector<pair<int, int>> proc, int n, int total, vector<int> w
             }
             else{
                 // end time
-                int temp = heap.front();
-                // delete root
-                pop_heap(heap.begin(), heap.end(), greater<>{});
-                heap.pop_back();
-                // new root
-                heap.front() = heap.front()-(diff-temp);
-                // ?
-                wt.push_back(temp+proc[i-1].second);
-                total += temp+proc[i-1].second;
+                int previousT = proc[i-1].second;
+
+                while(diff>0){
+                    int temp = heap.front();
+
+                    if(diff>=temp){
+                        // delete root
+                        pop_heap(heap.begin(), heap.end(), greater<>{});
+                        heap.pop_back();
+                        // diff
+                        diff -= temp;
+                        // ?
+                        wt.push_back(temp+previousT);  // todo 第二圈時間
+                        total += temp+previousT;
+                        previousT = temp+previousT;
+                    }
+                    else{
+                        heap.front() -= diff;
+                        diff = 0;
+                    }
+                }
+
             };
         }
         heap.push_back(proc[i].first);
@@ -142,6 +141,7 @@ int main() {
 //        clock_t start = clock();
         // SRPT
         vector<int> wt;
+//        vector<pair<int, int>> proc = {{6,0},{2,2},{3,2},{2,6},{5,7},{2,9}};
         findWaitingTime(process, process.size(), total, wt);
 
 //        clock_t end = clock();
