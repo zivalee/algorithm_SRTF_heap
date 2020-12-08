@@ -13,7 +13,6 @@ using namespace std;
 // first: Process Length (pj)
 // second: Arrival Time (rj)
 vector<int> findWaitingTime(vector<pair<int, int>> proc, int n, vector<int> wt) {
-
     int diff = 0, afterCountT = 0;
     vector<int> heap;
     // put Process Length of first element into heap
